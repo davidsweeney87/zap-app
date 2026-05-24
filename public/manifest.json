@@ -1,0 +1,17 @@
+{
+  "name": "Zap — ADHD Brain Trainer",
+  "short_name": "Zap",
+  "description": "A warm, gentle ADHD-friendly trainer for routines, habits, focus, and reminders — with Spark, your AI copilot.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fffbeb",
+  "theme_color": "#f97316",
+  "categories": ["productivity", "lifestyle", "health"],
+  "icons": [
+    { "src": "/spark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <radialGradient id="f" cx="35%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#fef9c3"/>
+      <stop offset="60%" stop-color="#fcd34d"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </radialGradient>
+    <radialGradient id="c" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fb7185" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#fb7185" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="50" cy="50" r="46" fill="url(#f)" stroke="#f59e0b" stroke-width="2"/>
+  <path d="M 50 12 L 44 28 L 52 28 L 46 42 L 58 24 L 50 24 L 56 12 Z" fill="#f97316" stroke="#c2410c" stroke-width="1.2" stroke-linejoin="round"/>
+  <circle cx="28" cy="60" r="8" fill="url(#c)"/>
+  <circle cx="72" cy="60" r="8" fill="url(#c)"/>
+  <circle cx="38" cy="42" r="3.6" fill="#422006"/>
+  <circle cx="62" cy="42" r="3.6" fill="#422006"/>
+  <circle cx="39" cy="41" r="1.1" fill="#fff"/>
+  <circle cx="63" cy="41" r="1.1" fill="#fff"/>
+  <path d="M 32 56 Q 50 72 68 56" fill="none" stroke="#422006" stroke-width="3.4" stroke-linecap="round"/>
+</svg>
