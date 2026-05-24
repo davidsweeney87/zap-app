@@ -57,7 +57,7 @@ export default function Chat() {
           'anthropic-dangerous-direct-browser-access': 'true'
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-4-6',
           max_tokens: 512,
           system: SYSTEM_PROMPT,
           messages: next.slice(-12).map(m => ({ role: m.role, content: m.content }))
