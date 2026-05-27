@@ -207,7 +207,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
 
 .habits-grid {
   display: grid;
-  grid-template-columns: 1.4fr repeat(7, 1fr);
+  grid-template-columns: 1.8fr repeat(7, 1fr);
   gap: 6px;
   align-items: center;
 }
@@ -222,9 +222,8 @@ input, textarea, select { font-family: inherit; color: inherit; }
   font-weight: 700;
   font-size: 13px;
   padding-right: 4px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 .habit-cell {
   aspect-ratio: 1;
