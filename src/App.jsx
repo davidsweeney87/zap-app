@@ -7,6 +7,7 @@ import Reminders from './screens/Reminders.jsx'
 import Chat from './screens/Chat.jsx'
 import { HomeIcon, RoutineIcon, HabitsIcon, FocusIcon, RemindersIcon, ChatIcon } from './icons.jsx'
 import ReminderBanner from './ReminderBanner.jsx'
+import { Analytics } from '@vercel/analytics/react'
 
 const TABS = [
   { id: 'home', label: 'Home', Icon: HomeIcon, Component: Home },
@@ -55,6 +56,7 @@ export default function App() {
 
   return (
     <div className="app">
+      <Analytics />
       <ReminderBanner />
       <Active goTo={setTab} />
       <nav className="bottom-nav" aria-label="Primary">
