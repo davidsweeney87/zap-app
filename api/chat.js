@@ -1,12 +1,8 @@
-import { Redis } from '@upstash/redis'
+import { kv, getSubscriberByToken } from './_lib/kv.js'
 
-const DAILY_LIMIT = 20
+const FREE_DAILY_LIMIT = 20
+const SUB_DAILY_LIMIT = 100
 const TTL_SECONDS = 60 * 60 * 25
-
-const redis =
-  process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN
-    ? new Redis({ url: process.env.KV_REST_API_URL, token: process.env.KV_REST_API_TOKEN })
-    : null
 
 function getClientIp(req) {
   const xff = req.headers['x-forwarded-for']
@@ -30,25 +26,32 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: { message: 'ANTHROPIC_API_KEY is not set on the server.' } })
   }
 
-  if (redis) {
-    const ip = getClientIp(req)
-    const cid = sanitizeCid(req.headers['x-zap-client-id'])
+  const token = req.headers['x-zap-sub-token']
+  const subscriber = await getSubscriberByToken(typeof token === 'string' ? token : null)
+  const isSubscriber = !!subscriber?.active
+  const limit = isSubscriber ? SUB_DAILY_LIMIT : FREE_DAILY_LIMIT
+
+  if (kv) {
     const today = new Date().toISOString().slice(0, 10)
-    const ipKey = `chat:ip:${ip}:${today}`
-    const cidKey = `chat:cid:${cid}:${today}`
+    const scope = isSubscriber ? `sub:${subscriber.customerId}` : null
+    const ip = scope ? null : getClientIp(req)
+    const cid = scope ? null : sanitizeCid(req.headers['x-zap-client-id'])
+    const keys = scope
+      ? [`chat:${scope}:${today}`]
+      : [`chat:ip:${ip}:${today}`, `chat:cid:${cid}:${today}`]
 
     try {
-      const [ipCount, cidCount] = await Promise.all([redis.incr(ipKey), redis.incr(cidKey)])
-      if (ipCount === 1) await redis.expire(ipKey, TTL_SECONDS)
-      if (cidCount === 1) await redis.expire(cidKey, TTL_SECONDS)
-
-      if (ipCount > DAILY_LIMIT || cidCount > DAILY_LIMIT) {
-        return res.status(429).json({
-          error: { message: `Daily message limit reached (${DAILY_LIMIT}/day). Try again tomorrow.` }
-        })
+      const counts = await Promise.all(keys.map(k => kv.incr(k)))
+      await Promise.all(
+        counts.map((n, i) => (n === 1 ? kv.expire(keys[i], TTL_SECONDS) : null))
+      )
+      if (counts.some(n => n > limit)) {
+        const msg = isSubscriber
+          ? `Daily message limit reached (${limit}/day). Resets at UTC midnight.`
+          : `Daily message limit reached (${limit}/day). Upgrade for ${SUB_DAILY_LIMIT}/day, or try again tomorrow.`
+        return res.status(429).json({ error: { message: msg } })
       }
     } catch (e) {
-      // Fail open: if the rate limiter is down, allow the request through rather than blocking the user.
       console.error('rate-limit error', e)
     }
   }

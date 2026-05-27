@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import useLocalStorage from '../useLocalStorage.js'
 import { REMINDER_CATEGORIES, REPEAT_OPTIONS } from '../defaults.js'
 import { PlusIcon, TrashIcon } from '../icons.jsx'
+import { enableNudges, nudgesPermission, nudgesSupported, syncReminders } from '../nudges.js'
 
 export default function Reminders() {
   const [items, setItems] = useLocalStorage('zap.reminders', [])
@@ -12,6 +13,28 @@ export default function Reminders() {
     repeat: 'daily',
     category: 'meds'
   })
+  const [permission, setPermission] = useState(() =>
+    nudgesSupported() ? nudgesPermission() : 'unsupported'
+  )
+  const [nudgeBusy, setNudgeBusy] = useState(false)
+  const [nudgeError, setNudgeError] = useState('')
+
+  useEffect(() => {
+    syncReminders(items)
+  }, [items])
+
+  async function turnOnNudges() {
+    setNudgeBusy(true)
+    setNudgeError('')
+    try {
+      await enableNudges()
+      setPermission(nudgesPermission())
+    } catch (e) {
+      setNudgeError(e.message || 'Could not enable nudges.')
+    } finally {
+      setNudgeBusy(false)
+    }
+  }
 
   function add() {
     if (!form.label.trim()) return
@@ -45,6 +68,35 @@ export default function Reminders() {
         </button>
       </div>
       <p className="sub" style={{ marginBottom: 16 }}>Gentle nudges, never naggy.</p>
+
+      {permission !== 'granted' && permission !== 'unsupported' && (
+        <div className="card warm">
+          <div className="row between" style={{ gap: 10 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 800, marginBottom: 4 }}>Turn on nudges ✨</div>
+              <div className="sub" style={{ fontSize: 13 }}>
+                Get a tiny notification at the reminder time, even when the app is closed.
+              </div>
+              {nudgeError && (
+                <div className="sub" style={{ fontSize: 12, color: '#991b1b', marginTop: 6 }}>
+                  {nudgeError}
+                </div>
+              )}
+            </div>
+            <button className="btn small" onClick={turnOnNudges} disabled={nudgeBusy}>
+              {nudgeBusy ? '...' : 'Enable'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {permission === 'unsupported' && (
+        <div className="card flat">
+          <div className="sub" style={{ fontSize: 13 }}>
+            Push notifications aren't supported on this device or browser. On iPhone, add Zap to your Home Screen first.
+          </div>
+        </div>
+      )}
 
       {adding && (
         <div className="card">

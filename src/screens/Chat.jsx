@@ -2,6 +2,37 @@ import { useEffect, useRef, useState } from 'react'
 import useLocalStorage from '../useLocalStorage.js'
 import Spark from '../Spark.jsx'
 import { SendIcon, TrashIcon } from '../icons.jsx'
+import { getClientId } from '../clientId.js'
+
+function getSubToken() {
+  try { return localStorage.getItem('zap.sub_token') || null } catch { return null }
+}
+
+async function startCheckout() {
+  const res = await fetch('/api/checkout', { method: 'POST' })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok || !data.url) {
+    alert(data?.error?.message || 'Could not start checkout.')
+    return
+  }
+  window.location.href = data.url
+}
+
+async function openBillingPortal() {
+  const token = getSubToken()
+  if (!token) return
+  const res = await fetch('/api/billing-portal', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token })
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok || !data.url) {
+    alert(data?.error?.message || 'Could not open billing portal.')
+    return
+  }
+  window.location.href = data.url
+}
 
 const SYSTEM_PROMPT = `You are Spark, a warm, upbeat, ADHD-friendly coach inside the Zap app. You help the user manage focus, routines, habits, and overwhelm.
 
@@ -19,21 +50,6 @@ Style:
 
 If asked something outside ADHD/life-coaching scope, gently redirect.`
 
-function getClientId() {
-  try {
-    let id = localStorage.getItem('zap.cid')
-    if (!id) {
-      id = (typeof crypto !== 'undefined' && crypto.randomUUID)
-        ? crypto.randomUUID()
-        : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
-      localStorage.setItem('zap.cid', id)
-    }
-    return id
-  } catch {
-    return 'anon'
-  }
-}
-
 export default function Chat() {
   const [messages, setMessages] = useLocalStorage('zap.chat', [
     { role: 'assistant', content: "Hey! I'm Spark ⚡ — your tiny ADHD copilot. What's on your mind today?" }
@@ -41,7 +57,18 @@ export default function Chat() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [subToken, setSubToken] = useState(() => getSubToken())
   const scrollRef = useRef(null)
+
+  useEffect(() => {
+    function syncToken() { setSubToken(getSubToken()) }
+    window.addEventListener('storage', syncToken)
+    window.addEventListener('zap:sub-changed', syncToken)
+    return () => {
+      window.removeEventListener('storage', syncToken)
+      window.removeEventListener('zap:sub-changed', syncToken)
+    }
+  }, [])
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
@@ -58,9 +85,11 @@ export default function Chat() {
     setError('')
 
     try {
+      const headers = { 'Content-Type': 'application/json', 'x-zap-client-id': getClientId() }
+      if (subToken) headers['x-zap-sub-token'] = subToken
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-zap-client-id': getClientId() },
+        headers,
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
           max_tokens: 512,
@@ -97,7 +126,14 @@ export default function Chat() {
             <div className="sub" style={{ fontSize: 12 }}>your ADHD copilot</div>
           </div>
         </div>
-        <button className="btn ghost small" onClick={clearChat} aria-label="Clear chat"><TrashIcon /></button>
+        <div className="row" style={{ gap: 6 }}>
+          {subToken ? (
+            <button className="btn ghost small" onClick={openBillingPortal}>Manage</button>
+          ) : (
+            <button className="btn small" onClick={startCheckout}>Upgrade ✨</button>
+          )}
+          <button className="btn ghost small" onClick={clearChat} aria-label="Clear chat"><TrashIcon /></button>
+        </div>
       </div>
 
       <div className="chat-wrap">

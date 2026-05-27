@@ -3,6 +3,7 @@ import Spark from '../Spark.jsx'
 import useLocalStorage from '../useLocalStorage.js'
 import { DEFAULT_ROUTINE, MOODS, todayKey } from '../defaults.js'
 import { PlusIcon, TrashIcon } from '../icons.jsx'
+import InstallBanner from '../InstallBanner.jsx'
 
 function greeting() {
   const h = new Date().getHours()
@@ -45,6 +46,7 @@ export default function Home({ goTo }) {
 
   return (
     <div className="screen">
+      <InstallBanner />
       <div className="row" style={{ gap: 14, marginBottom: 16 }}>
         <div className="spark-bubble" style={{ width: 64, height: 64 }}>
           <Spark size={64} mood="cheer" />

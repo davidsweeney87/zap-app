@@ -375,3 +375,53 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .tag.yellow { background: var(--yellow); color: var(--ink); }
 
 .divider { height: 1px; background: var(--cream-2); margin: 12px 0; }
+
+.install-banner {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: var(--radius);
+  padding: 14px 14px 12px;
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+  border: 2px solid var(--cream-3);
+}
+.install-banner-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--ink-soft);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.reminder-toast {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 24px);
+  max-width: 456px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(180, 83, 9, 0.22);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  z-index: 200;
+  border: 2px solid var(--yellow);
+  animation: toastIn 0.25s ease;
+}
+@keyframes toastIn { from { opacity: 0; transform: translate(-50%, -8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.reminder-toast-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--cream-2);
+  color: var(--ink-soft);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+}
