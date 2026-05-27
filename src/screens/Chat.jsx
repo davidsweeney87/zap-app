@@ -35,11 +35,6 @@ export default function Chat() {
   async function send() {
     const text = input.trim()
     if (!text || loading) return
-    const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY
-    if (!apiKey) {
-      setError('Add VITE_ANTHROPIC_API_KEY to .env then restart the dev server.')
-      return
-    }
 
     const next = [...messages, { role: 'user', content: text }]
     setMessages(next)
@@ -48,14 +43,9 @@ export default function Chat() {
     setError('')
 
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
           max_tokens: 512,
@@ -63,11 +53,11 @@ export default function Chat() {
           messages: next.slice(-12).map(m => ({ role: m.role, content: m.content }))
         })
       })
+      const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        const t = await res.text()
-        throw new Error(`API ${res.status}: ${t.slice(0, 180)}`)
+        const msg = data?.error?.message || `Request failed (${res.status})`
+        throw new Error(msg)
       }
-      const data = await res.json()
       const reply = data?.content?.[0]?.text || "Hmm, I lost my words for a sec. Try again?"
       setMessages([...next, { role: 'assistant', content: reply }])
     } catch (e) {

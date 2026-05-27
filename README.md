@@ -7,10 +7,20 @@ A warm, mobile-first PWA for ADHD-friendly routines, habits, focus sprints, remi
 ```bash
 npm install
 cp .env.example .env   # then edit .env and paste your Anthropic API key
-npm run dev
 ```
 
-Open http://localhost:5173 on your phone (same Wi-Fi) or desktop.
+The chat uses a Vercel serverless function (`api/chat.js`) that holds the key server-side, so local dev needs the Vercel CLI:
+
+```bash
+npm i -g vercel
+vercel dev
+```
+
+Open the URL printed by `vercel dev` (usually http://localhost:3000). `npm run dev` still works for everything except chat (no serverless runtime).
+
+## Deploy
+
+Push to GitHub. On Vercel, import the repo and add `ANTHROPIC_API_KEY` as an environment variable. Every push to `main` redeploys.
 
 ## Build
 
@@ -21,6 +31,6 @@ npm run preview
 
 ## Notes
 
-- API key is read from `VITE_ANTHROPIC_API_KEY` and used directly from the browser via `anthropic-dangerous-direct-browser-access`. Don't ship this in production without a backend proxy — your key would be exposed.
-- All state is saved to `localStorage`.
+- The Anthropic key lives only on the server (`ANTHROPIC_API_KEY`). The browser calls `/api/chat`, which proxies to Anthropic — the key is never shipped to the client.
+- All UI state is saved to `localStorage`.
 - Service worker caches the shell for offline use; chat still requires network.
