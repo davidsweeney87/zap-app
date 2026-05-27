@@ -8,6 +8,12 @@ import {
 } from '../_lib/kv.js'
 
 const TTL_FIRED = 60 * 60 * 25
+const MATCH_WINDOW_MINUTES = 5
+
+function hhmmToMinutes(s) {
+  const [h, m] = s.split(':').map(Number)
+  return h * 60 + m
+}
 
 if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   webpush.setVapidDetails(
@@ -78,11 +84,14 @@ export default async function handler(req, res) {
     const parts = partsInTz(now, tz)
     if (!parts) continue
 
+    const nowMinutes = hhmmToMinutes(parts.hhmm)
     for (const r of record.reminders) {
       scanned++
       if (!r.on) continue
-      if (r.time !== parts.hhmm) continue
       if (!matchesRepeat(r.repeat, parts.weekday)) continue
+      const reminderMinutes = hhmmToMinutes(r.time)
+      const delta = nowMinutes - reminderMinutes
+      if (delta < 0 || delta > MATCH_WINDOW_MINUTES) continue
 
       const firedKey = reminderFiredKey(cid, r.id, parts.iso)
       const already = await kv.get(firedKey)
