@@ -19,6 +19,21 @@ Style:
 
 If asked something outside ADHD/life-coaching scope, gently redirect.`
 
+function getClientId() {
+  try {
+    let id = localStorage.getItem('zap.cid')
+    if (!id) {
+      id = (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
+      localStorage.setItem('zap.cid', id)
+    }
+    return id
+  } catch {
+    return 'anon'
+  }
+}
+
 export default function Chat() {
   const [messages, setMessages] = useLocalStorage('zap.chat', [
     { role: 'assistant', content: "Hey! I'm Spark ⚡ — your tiny ADHD copilot. What's on your mind today?" }
@@ -45,7 +60,7 @@ export default function Chat() {
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-zap-client-id': getClientId() },
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
           max_tokens: 512,
